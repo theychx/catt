@@ -538,10 +538,10 @@ class PlaybackBaseMixin:
     def play_media_url(self, video_url: str, **kwargs) -> None:
         raise NotImplementedError
 
-    def play_media_id(self, video_id: str) -> None:
+    def play_media_id(self, video_id: str, **kwargs) -> None:
         raise NotImplementedError
 
-    def play_playlist(self, playlist_id: str, video_id: str) -> None:
+    def play_playlist(self, playlist_id: str, video_id: str, **kwargs) -> None:
         raise NotImplementedError
 
     def wait_for(self, states: list, invert: bool = False, fail: bool = False, timeout: Optional[int] = None) -> bool:
@@ -608,12 +608,14 @@ class YoutubeCastController(CastController, MediaControllerMixin, PlaybackBaseMi
         self.save_capability = "partial"
         self.playlist_capability = "complete"
 
-    def play_media_id(self, video_id):
-        self._controller.play_video(video_id)
+    def play_media_id(self, video_id, **kwargs):
+        start_time = kwargs.get("start_time") or 0
+        print(start_time)
+        self._controller.play_video(video_id, playlist_id=None, start_time=str(int(start_time)))
 
-    def play_playlist(self, playlist_id, video_id):
+    def play_playlist(self, playlist_id, video_id, **kwargs):
         self.clear()
-        self._controller.play_video(video_id, playlist_id)
+        self.play_media_id(video_id, playlist_id=playlist_id, start_time=kwargs.get("start_time"))
 
     def add(self, video_id):
         # You can't add videos to the queue while the app is buffering.

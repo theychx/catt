@@ -154,8 +154,11 @@ def write_config(settings):
     help="YouTube-DL option. "
     "Should be passed as `-y option=value`, and can be specified multiple times (implies --force-default).",
 )
+@click.option(
+    "-t", "--start-time", type=CATT_TIME, metavar="TIME", help="Position in content to start playback, if applicable."
+)
 @click.pass_obj
-def cast(settings, video_url, subtitles, force_default, random_play, no_subs, no_playlist, ytdl_option):
+def cast(settings, video_url, subtitles, force_default, random_play, no_subs, no_playlist, ytdl_option, start_time):
     controller = "default" if force_default or ytdl_option else None
     playlist_playback = False
     st_thr = su_thr = subs = None
@@ -185,7 +188,7 @@ def cast(settings, video_url, subtitles, force_default, random_play, no_subs, no
     if playlist_playback:
         click.echo("Casting remote playlist {}...".format(video_url))
         video_id = stream.video_id or stream.playlist_all_ids[0]
-        cst.play_playlist(stream.playlist_id, video_id=video_id)
+        cst.play_playlist(stream.playlist_id, video_id, start_time=start_time)
     else:
         if not subtitles and not no_subs and stream.is_local_file:
             subtitles = hunt_subtitles(video_url)
@@ -206,9 +209,10 @@ def cast(settings, video_url, subtitles, force_default, random_play, no_subs, no
                 content_type=stream.guessed_content_type,
                 subtitles=subs.url if subs else None,
                 thumb=stream.video_thumbnail,
+                current_time=start_time,
             )
         elif cst.info_type == "id":
-            cst.play_media_id(stream.video_id)
+            cst.play_media_id(stream.video_id, start_time=start_time)
         else:
             raise ValueError("Invalid or undefined info type")
 
